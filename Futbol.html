@@ -1,0 +1,351 @@
+﻿
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FOOTBALL NEWS</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #10151d;
+  color: white;
+  font-family: Arial, sans-serif;
+}
+
+header {
+  background: #087b43;
+  padding: 25px;
+  text-align: center;
+  font-size: 30px;
+  font-weight: bold;
+}
+
+nav {
+  background: #19232e;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 15px;
+}
+
+nav button {
+  background: transparent;
+  color: white;
+  border: none;
+  padding: 12px;
+  cursor: pointer;
+  font-size: 15px;
+}
+
+nav button:hover {
+  color: #00e676;
+}
+
+.container {
+  max-width: 1100px;
+  margin: auto;
+  padding: 20px;
+}
+
+h2 {
+  color: #00e676;
+}
+
+.news-card {
+  background: #202c39;
+  border-radius: 12px;
+  padding: 18px;
+  margin-bottom: 18px;
+}
+
+.news-card img {
+  width: 100%;
+  max-height: 350px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.news-card h3 {
+  font-size: 22px;
+}
+
+.news-card p {
+  color: #cbd5df;
+  line-height: 1.6;
+}
+
+.admin {
+  background: #202c39;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 25px;
+}
+
+input, textarea, select {
+  width: 100%;
+  padding: 13px;
+  margin: 8px 0;
+  border: 1px solid #425363;
+  border-radius: 7px;
+  background: #101820;
+  color: white;
+}
+
+textarea {
+  min-height: 120px;
+}
+
+.action {
+  background: #00a85a;
+  color: white;
+  border: none;
+  border-radius: 7px;
+  padding: 12px 18px;
+  margin: 5px;
+  cursor: pointer;
+}
+
+.delete {
+  background: #d93636;
+}
+
+.edit {
+  background: #2779d5;
+}
+
+#adminPanel {
+  display: none;
+}
+
+footer {
+  background: #19232e;
+  text-align: center;
+  padding: 25px;
+  margin-top: 40px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+⚽ FOOTBALL NEWS
+</header>
+
+<nav>
+<button onclick="showCategory('Barchasi')">Bosh sahifa</button>
+<button onclick="showCategory('So‘nggi yangiliklar')">So‘nggi yangiliklar</button>
+<button onclick="showCategory('Chempionatlar')">Chempionatlar</button>
+<button onclick="showCategory('Transferlar')">Transferlar</button>
+<button onclick="showCategory('Klublar')">Klublar</button>
+<button onclick="showCategory('O‘zbekiston futboli')">O‘zbekiston futboli</button>
+<button onclick="login()">Admin</button>
+</nav>
+
+<div class="container">
+
+<div id="adminPanel" class="admin">
+<h2>⚙️ ADMIN PANEL</h2>
+
+<h3>Yangi yangilik qo‘shish</h3>
+
+<input id="title" placeholder="Yangilik sarlavhasi">
+
+<select id="category">
+<option>So‘nggi yangiliklar</option>
+<option>Chempionatlar</option>
+<option>Transferlar</option>
+<option>Klublar</option>
+<option>O‘zbekiston futboli</option>
+</select>
+
+<textarea id="description"
+placeholder="Yangilik matnini yozing..."></textarea>
+
+<input id="image" placeholder="Rasm URL manzili (ixtiyoriy)">
+
+<button class="action" onclick="addNews()">
++ Yangilikni joylash
+</button>
+
+<button class="action delete" onclick="logout()">
+Chiqish
+</button>
+</div>
+
+<h2 id="sectionTitle">🔥 So‘nggi yangiliklar</h2>
+
+<div id="newsList"></div>
+
+</div>
+
+<footer>
+FOOTBALL NEWS © 2026
+</footer>
+
+<script>
+
+let news = JSON.parse(localStorage.getItem("footballNews") || "[]");
+
+let currentCategory = "Barchasi";
+
+function saveNews() {
+  localStorage.setItem("footballNews", JSON.stringify(news));
+}
+
+function showCategory(category) {
+  currentCategory = category;
+
+  document.getElementById("sectionTitle").innerText =
+    category === "Barchasi" ? "🔥 Barcha yangiliklar" : category;
+
+  renderNews();
+}
+
+function renderNews() {
+  const list = document.getElementById("newsList");
+  list.innerHTML = "";
+
+  let filtered = news.filter(item =>
+    currentCategory === "Barchasi" ||
+    item.category === currentCategory
+  );
+
+  if (filtered.length === 0) {
+    list.innerHTML = "<p>Hozircha yangiliklar mavjud emas.</p>";
+    return;
+  }
+
+  filtered.forEach(item => {
+    const card = document.createElement("div");
+    card.className = "news-card";
+
+    const heading = document.createElement("h3");
+    heading.textContent = item.title;
+    card.appendChild(heading);
+
+    if (item.image) {
+      const img = document.createElement("img");
+      img.src = item.image;
+      img.alt = item.title;
+      card.appendChild(img);
+    }
+
+    const paragraph = document.createElement("p");
+    paragraph.textContent = item.description;
+    card.appendChild(paragraph);
+
+    const date = document.createElement("small");
+    date.textContent = item.date;
+    card.appendChild(date);
+
+    const category = document.createElement("p");
+    category.textContent = "Bo‘lim: " + item.category;
+    card.appendChild(category);
+
+    if (document.getElementById("adminPanel").style.display === "block") {
+      const edit = document.createElement("button");
+      edit.className = "action edit";
+      edit.textContent = "Tahrirlash";
+      edit.onclick = () => editNews(item.id);
+      card.appendChild(edit);
+
+      const del = document.createElement("button");
+      del.className = "action delete";
+      del.textContent = "O‘chirish";
+      del.onclick = () => deleteNews(item.id);
+      card.appendChild(del);
+    }
+
+    list.appendChild(card);
+  });
+}
+
+function addNews() {
+  const title = document.getElementById("title").value.trim();
+  const description = document.getElementById("description").value.trim();
+  const category = document.getElementById("category").value;
+  const image = document.getElementById("image").value.trim();
+
+  if (!title || !description) {
+    alert("Sarlavha va yangilik matnini kiriting!");
+    return;
+  }
+
+  news.unshift({
+    id: Date.now(),
+    title,
+    description,
+    category,
+    image,
+    date: new Date().toLocaleString("uz-UZ")
+  });
+
+  saveNews();
+  clearForm();
+  showCategory("Barchasi");
+
+  alert("Yangilik joylandi!");
+}
+
+function clearForm() {
+  document.getElementById("title").value = "";
+  document.getElementById("description").value = "";
+  document.getElementById("image").value = "";
+}
+
+function deleteNews(id) {
+  if (confirm("Yangilikni o‘chirmoqchimisiz?")) {
+    news = news.filter(item => item.id !== id);
+    saveNews();
+    renderNews();
+  }
+}
+
+function editNews(id) {
+  const item = news.find(n => n.id === id);
+  if (!item) return;
+
+  const newTitle = prompt("Sarlavhani o‘zgartiring:", item.title);
+  if (newTitle === null || !newTitle.trim()) return;
+
+  const newDescription = prompt("Matnni o‘zgartiring:", item.description);
+  if (newDescription === null || !newDescription.trim()) return;
+
+  item.title = newTitle.trim();
+  item.description = newDescription.trim();
+
+  saveNews();
+  renderNews();
+}
+
+function login() {
+  const password = prompt("Admin parolini kiriting:");
+
+  if (password === "012016") {
+    document.getElementById("adminPanel").style.display = "block";
+    renderNews();
+    alert("Admin panelga xush kelibsiz!");
+  } else {
+    alert("Parol noto‘g‘ri!");
+  }
+}
+
+function logout() {
+  document.getElementById("adminPanel").style.display = "none";
+  renderNews();
+}
+
+renderNews();
+
+</script>
+
+</body>
+</html>
